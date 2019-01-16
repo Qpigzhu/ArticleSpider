@@ -7,13 +7,15 @@ from rest_framework.pagination import PageNumberPagination #分页
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework import filters
+from rest_framework.response import Response
+
 
 
 
 
 from .filters import GoodsFilter
-from .models import Goods,GoodsCategory
-from .serializers import GoodsSerializers,GoodsCategorySerializers
+from .models import Goods,GoodsCategory,Banner
+from .serializers import GoodsSerializers,GoodsCategorySerializers,BannerSerirlizers,IndexCategorySerirlizer
 
 # Create your views here.
 
@@ -56,7 +58,8 @@ class Goodspagination(PageNumberPagination):
 """
 继承viewsets写的商品列表页,使得有绑定URL更加便捷
 """
-class GoodsList(mixins.ListModelMixin,viewsets.GenericViewSet):
+#mixins.RetrieveModelMixin详情页
+class GoodsList(mixins.ListModelMixin,mixins.RetrieveModelMixin,viewsets.GenericViewSet):
     """
         GoodList 商品列表,分页,过滤
     """
@@ -75,6 +78,13 @@ class GoodsList(mixins.ListModelMixin,viewsets.GenericViewSet):
     #排序过滤器
     ordering_fields = ('sold_num', 'shop_price')
 
+    #重写该函数，增加商品点击数
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.click_num += 1
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class CategoryViewset(mixins.ListModelMixin,mixins.RetrieveModelMixin,viewsets.GenericViewSet):
@@ -84,3 +94,21 @@ class CategoryViewset(mixins.ListModelMixin,mixins.RetrieveModelMixin,viewsets.G
     """
     queryset = GoodsCategory.objects.filter(category_type=1)
     serializer_class =GoodsCategorySerializers
+
+
+class BannerViewset(mixins.ListModelMixin,viewsets.GenericViewSet):
+    """
+        List:
+            首页轮播图列表
+
+    """
+    queryset = Banner.objects.all().order_by("index")
+    serializer_class = BannerSerirlizers
+
+class IndexCategoryViewset(mixins.ListModelMixin,viewsets.GenericViewSet):
+    """
+         List:
+            首页商品分类数据
+    """
+    queryset = GoodsCategory.objects.filter(is_tab=True,name__in=["生鲜食品", "酒水饮料"])
+    serializer_class = IndexCategorySerirlizer

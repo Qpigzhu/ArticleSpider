@@ -9,11 +9,14 @@ from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import permissions
+from rest_framework.authentication import SessionAuthentication
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_jwt.serializers import jwt_encode_handler,jwt_payload_handler
 
 
 from .models import Verifycode
-from .serializers import SmsSerializer,UserRegSerializer
+from .serializers import SmsSerializer,UserRegSerializer,UserDetailSerializer
 from utils.yunpian import YunPian
 from DjangoDrf.settings import APIKEY
 
@@ -88,13 +91,17 @@ class SmsCodeView(mixins.CreateModelMixin,viewsets.GenericViewSet):
             },status=status.HTTP_201_CREATED)
 
 
-class UserView(mixins.CreateModelMixin,viewsets.GenericViewSet):
+class UserView(mixins.CreateModelMixin,mixins.UpdateModelMixin,mixins.RetrieveModelMixin,viewsets.GenericViewSet):
     """
     用户
     """
 
     serializer_class = UserRegSerializer
     queryset = User.objects.all()
+    #登录认证方法
+    authentication_classes = (SessionAuthentication,JSONWebTokenAuthentication)
+
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -112,6 +119,32 @@ class UserView(mixins.CreateModelMixin,viewsets.GenericViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(re_dict, status=status.HTTP_201_CREATED, headers=headers)
 
+    #重载该方法,动态开启认证权限,返回一个列表
+    def get_permissions(self):
+        if self.action == "retrieve": #获取用户详情状态
+            return [permissions.IsAuthenticated()]
+        elif self.action == "create": #注册状态
+            return []
+
+        return [] #其它情况
+
+    #重载该方法,动态序列化模型
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return UserDetailSerializer
+        elif self.action == "create":
+            return UserRegSerializer
+
+        return UserDetailSerializer
+
+
+
     #重载返回用户对象
     def perform_create(self, serializer):
         return serializer.save()
+
+    #重写该方法，不管传什么id，都只返回当前用户,只合适viewset，mixins.RetrieveModelMixin，删除的时候
+    def get_object(self):
+        return self.request.user
+
+

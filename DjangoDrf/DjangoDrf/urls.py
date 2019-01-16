@@ -15,6 +15,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.views.generic import TemplateView
 from django.urls import path,include,re_path
 from django.views.static import serve
 import xadmin
@@ -23,8 +24,10 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
 from .settings import MEDIA_ROOT
-from goods.views import GoodsList,CategoryViewset
+from goods.views import GoodsList,CategoryViewset,BannerViewset,IndexCategoryViewset
 from users.views import SmsCodeView,UserView
+from user_operation.views import UserFavView,LeavingMessageViewset,AddressViewset
+from trade.views import ShoppingCartViewSet,OrderViewset,AlipayView
 
 #使用router注册Url
 router = DefaultRouter()
@@ -38,8 +41,25 @@ router.register("code",SmsCodeView,base_name="sms_code")
 #用户
 router.register("users",UserView,base_name="users")
 
+#收藏
+router.register("userfavs",UserFavView,base_name="userfavs")
+#留言
+router.register('messages', LeavingMessageViewset, base_name="messages")
 
+#收货地址
+router.register("address",AddressViewset,base_name="address")
 
+#购物车
+router.register(r'shopcarts', ShoppingCartViewSet, base_name="shopcarts")
+
+# 订单相关url
+router.register(r'orders', OrderViewset, base_name="orders")
+
+#首页轮播图url
+router.register("banners",BannerViewset,base_name="banners")
+
+# 首页系列商品展示url
+router.register(r'indexgoods', IndexCategoryViewset, base_name="indexgoods")
 urlpatterns = [
     # path('admin/', admin.site.urls),
 
@@ -62,5 +82,10 @@ urlpatterns = [
 
     #使用jwt来登录
     path('login/',obtain_jwt_token),
+
+    #支付宝接口
+    path("alipay/retrun",AlipayView.as_view(),name="alipay"),
+    # 首页
+    path('index/', TemplateView.as_view(template_name='index.html'))
 
 ]

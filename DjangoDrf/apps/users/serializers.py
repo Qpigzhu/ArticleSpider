@@ -44,6 +44,16 @@ class SmsSerializer(serializers.Serializer):
 
         return mobile
 
+
+
+#用户信息详情
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("username", "gender", "birthday", "email","mobile")
+
+
+
 #用户注册
 class UserRegSerializer(serializers.ModelSerializer):
     #定义验证码字段,write_onle只写，不可以读的状态

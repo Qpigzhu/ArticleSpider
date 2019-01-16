@@ -28,7 +28,7 @@ SECRET_KEY = 'm6aywf_!9n)3j&&##x#_&-_=d=hfq&4yo9!@-f)3pc82&5_=3s'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = "users.UserProfile" #重置User模型使得生效
 # Application definition
@@ -92,11 +92,11 @@ WSGI_APPLICATION = 'DjangoDrf.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'vue_shop',
+        'NAME': 'mxshop',
         'USER':'root',
-        'PASSWORD':'root',
-        'HOST':'127.0.0.1',
-        'PORT':'3307', #端口
+        'PASSWORD':'123456',
+        'HOST':'120.78.223.213',
+        'PORT':'3306', #端口
 
         #mysql的数据库引擎有InnoDB 和 myisam
         #第三方登录的库要求使用innodb 否则会migration出错。
@@ -154,6 +154,9 @@ AUTHENTICATION_BACKENDS = (
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 # 设置上传文件，图片访问路径
 MEDIA_URL = '/media/'
@@ -165,12 +168,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # }
 
 
+"""
+前端的每一个request请求都加入我们的token的话，token过期了
+，当用户访问goods列表页等不需要token认证的页面也会拿不到数据。
+将setting中的'rest_framework.authentication.SessionAuthentication',删除掉。
+放在需要验证的View里面
+"""
+
 #登录验证设置拦截器
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 }
 
@@ -187,3 +197,10 @@ REGEX_MOBILE = "^1[358]\d{9}$|^147\d{8}$|^176\d{8}$"
 
 #云片网KEY
 APIKEY = 'c3f3f6e838aebdcd4cbbf02575104989'
+
+# 支付宝相关的key路径
+private_key_path = os.path.join(BASE_DIR, 'apps/trade/keys/private_2048.txt')
+ali_pub_key_path = os.path.join(BASE_DIR, 'apps/trade/keys/alipay_key_2048.txt')
+
+#支付宝appid
+alipay_appid = "2016092300579459"

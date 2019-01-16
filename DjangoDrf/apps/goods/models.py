@@ -52,7 +52,7 @@ class GoodsCategoryBrand(models.Model):
         db_table = "goods_goodsbrand"
 
     def __str__(self):
-        return self.names
+        return self.name
 
 
 class Goods(models.Model):
